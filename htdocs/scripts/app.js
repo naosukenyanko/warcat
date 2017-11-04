@@ -2,6 +2,8 @@
 
 
 function init(){
+	console.log("init");
+
 	//Create a stage by getting a reference to the canvas
 	stage = new createjs.Stage("demoCanvas");
 	//Create a Shape DisplayObject.
@@ -14,5 +16,7 @@ function init(){
 	//Update stage will render next frame
 	stage.update();
 }
+
+init();
 
 },{}]},{},[1]);
