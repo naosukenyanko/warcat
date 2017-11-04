@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-	  "compile": "browserify src/browser.js > htdocs/scripts/app.js"
+	  "compile": "browserify src/browser.js -o htdocs/scripts/app.js -t [babelify --presets [ es2015] ]",
+	  "watchify": "watchify  src/browser.js  -v -o htdocs/scripts/app.js -t [ babelify --presets [ es2015 ] ]"
   },
   "repository": {
     "type": "git",
