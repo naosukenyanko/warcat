@@ -1,6 +1,6 @@
 
 const config = {
-	ScreenHeight: 1120,
+	ScreenHeight: 920,
 	ScreenWidth: 640
 };
 

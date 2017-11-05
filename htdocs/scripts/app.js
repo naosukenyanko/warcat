@@ -17,11 +17,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var Charactor = function () {
 	function Charactor(props) {
+		var _this = this;
+
 		_classCallCheck(this, Charactor);
 
 		for (var k in props) {
 			this[k] = props[k];
 		}
+
+		["onClick", "onPressMove", "redraw", "setPos"].forEach(function (name) {
+			_this[name] = _this[name].bind(_this);
+		});
 	}
 
 	_createClass(Charactor, [{
@@ -39,13 +45,71 @@ var Charactor = function () {
 			circle.graphics.beginFill("red").drawCircle(width_interval / 2.0, height_interval / 2.0, height_interval / 2 - 8);
 			circle.x = this.x * width_interval;
 			circle.y = this.y * height_interval;
-			console.log(this.x, this.y);
+			//console.log(this.x, this.y);
+
+			circle.addEventListener("click", this.onClick);
+			circle.addEventListener("pressmove", this.onPressMove);
+
+			this.circle = circle;
 
 			stage.addChild(circle);
 		}
 	}, {
+		key: "onClick",
+		value: function onClick(evt) {
+			console.log("click");
+			//this.move(+1, 0);
+		}
+	}, {
+		key: "onPressMove",
+		value: function onPressMove(evt) {
+			//console.log("StageXY", evt.stageX, evt.stageY);
+			var height = _config2.default.ScreenHeight;
+			var width = _config2.default.ScreenWidth;
+
+			var width_interval = width / 5.0;
+			var height_interval = height / 10.0;
+
+			var x = Math.floor(evt.stageX / width_interval);
+			var y = Math.floor(evt.stageY / height_interval);
+
+			evt.preventDefault();
+			this.setPos(x, y);
+			//console.log("xy", x, y);
+		}
+	}, {
+		key: "redraw",
+		value: function redraw() {
+			var circle = this.circle;
+			var height = _config2.default.ScreenHeight;
+			var width = _config2.default.ScreenWidth;
+
+			var width_interval = width / 5.0;
+			var height_interval = height / 10.0;
+
+			circle.x = this.x * width_interval;
+			circle.y = this.y * height_interval;
+		}
+	}, {
 		key: "move",
-		value: function move(x, y) {}
+		value: function move(x, y) {
+			this.x += x;
+			this.y += y;
+			this.redraw();
+		}
+	}, {
+		key: "setPos",
+		value: function setPos(x, y) {
+			//console.log("set pos", x, y);
+			if (x < 0) x = 0;
+			if (y < 0) y = 0;
+			if (x >= 5) x = 4;
+			if (y >= 10) y = 9;
+
+			this.x = x;
+			this.y = y;
+			this.redraw();
+		}
 	}]);
 
 	return Charactor;
@@ -71,19 +135,29 @@ var _chara = require('./chara');
 
 var _chara2 = _interopRequireDefault(_chara);
 
+var _manager = require('../manager');
+
+var _manager2 = _interopRequireDefault(_manager);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-console.log("config", _config2.default);
+//console.log("config", config);
+
 
 var BattleStage = function () {
-	function BattleStage(prop) {
+	function BattleStage(props) {
 		_classCallCheck(this, BattleStage);
 
 		//console.log("constructor");
 
+		//this.manager = props.manager;
+
 		var stage = new createjs.Stage("appcontainer");
+		createjs.Touch.enable(stage);
+		stage.enableMouseOver(10);
+		stage.mouseMoveOutside = true;
 
 		this.stage = stage;
 
@@ -92,6 +166,9 @@ var BattleStage = function () {
 		this.charactors = chara_list.map(function (chara) {
 			return new _chara2.default(chara);
 		});
+
+		this.onTick = this.onTick.bind(this);
+		this.onClick = this.onClick.bind(this);
 	}
 
 	_createClass(BattleStage, [{
@@ -99,19 +176,31 @@ var BattleStage = function () {
 		value: function load() {
 			var stage = this.stage;
 
-			//console.log("load");
-
 			this.drawMap();
-
-			this.charactors.forEach(function (chara) {
-				chara.load({ stage: stage });
-			});
+			this.loadCharactors();
 
 			stage.update();
+
+			createjs.Ticker.addEventListener("tick", this.onTick);
+			stage.addEventListener("click", this.onClick);
+		}
+	}, {
+		key: 'clear',
+		value: function clear() {
+			var stage = this.stage;
+			createjs.Ticker.removeEventListener("tick", this.onTick);
+			stage.removeEventListener("click", this.onClick);
+
+			stage.clear();
 		}
 	}, {
 		key: 'loadCharactors',
-		value: function loadCharactors() {}
+		value: function loadCharactors() {
+			var stage = this.stage;
+			this.charactors.forEach(function (chara) {
+				chara.load({ stage: stage });
+			});
+		}
 	}, {
 		key: 'drawMap',
 		value: function drawMap() {
@@ -144,6 +233,18 @@ var BattleStage = function () {
 
 			stage.addChild(rect);
 		}
+	}, {
+		key: 'onTick',
+		value: function onTick(evt) {
+			//console.log("tick", this);
+			this.stage.update();
+		}
+	}, {
+		key: 'onClick',
+		value: function onClick(evt) {
+			//console.log("onclick", manager);
+			_manager2.default.show("menu");
+		}
 	}]);
 
 	return BattleStage;
@@ -151,96 +252,31 @@ var BattleStage = function () {
 
 exports.default = BattleStage;
 
-},{"../config":4,"./chara":1}],3:[function(require,module,exports){
+},{"../config":4,"../manager":5,"./chara":1}],3:[function(require,module,exports){
 "use strict";
 
-var _battle = require("./battle");
+var _manager = require("./manager");
 
-var _battle2 = _interopRequireDefault(_battle);
+var _manager2 = _interopRequireDefault(_manager);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var ScreenHeight = 1120;
-var ScreenWidth = 640;
-
-function drawCircle(stage) {
-	var circle = new createjs.Shape();
-	circle.graphics.beginFill("red").drawCircle(0, 0, 40);
-	//Set position of Shape instance.
-	circle.x = circle.y = 50;
-	//Add Shape instance to stage display list.
-	stage.addChild(circle);
-	//Update stage will render next frame
-}
-
-function drawRect(stage) {
-	var rect = new createjs.Shape();
-	rect.graphics.beginFill("#ff0000").drawRect(0, 0, 100, 100);
-	rect.x = 0;
-	rect.y = 0;
-	stage.addChild(rect);
-
-	var rect2 = new createjs.Shape();
-	rect2.graphics.beginFill("#00ff00").drawRect(100, 0, 100, 150);
-	rect2.x = 0;
-	rect2.y = 0;
-	stage.addChild(rect2);
-
-	var rect3 = new createjs.Shape();
-	rect3.graphics.beginFill("#0000ff").drawRect(200, 0, 100, 100);
-	rect3.x = 0;
-	rect3.y = 0;
-	stage.addChild(rect3);
-}
-
-function drawMap(stage) {
-
-	var g = new createjs.Graphics();
-	g.setStrokeStyle(1);
-	g.beginStroke("#c0c0c0");
-	//g.beginFill("#ffffff").drawRect(0, 0, ScreenWidth, ScreenHeight);
-
-	//const height = 150;
-	//const width  = 300;
-	var height = ScreenHeight;
-	var width = ScreenWidth;
-
-	var width_interval = width / 5.0;
-	for (var i = 0; i < 5 + 1; i++) {
-		g.moveTo(i * width_interval, 0);
-		g.lineTo(i * width_interval, height);
-	}
-	var height_interval = height / 10.0;
-	for (var _i = 0; _i < 10 + 1; _i++) {
-		g.moveTo(0, _i * height_interval);
-		g.lineTo(width, _i * height_interval);
-	}
-	g.endStroke();
-
-	var rect = new createjs.Shape(g);
-
-	stage.addChild(rect);
-}
 
 function init() {
 	console.log("init");
 
-	//Create a stage by getting a reference to the canvas
-	//const stage = new createjs.Stage("appcontainer");
+	//var stage = new BattleStage();
+	//var stage = new Menu();
+	//stage.load();
 
-
-	//Create a Shape DisplayObject.
-	//drawRect(stage);
-	//drawMap(stage);
-	//stage.update();
-
-	var stage = new _battle2.default();
-	stage.load();
+	_manager2.default.show("battle");
 }
+//import BattleStage from './battle';
+//import Menu from './menu';
+
 
 init();
 
-},{"./battle":2}],4:[function(require,module,exports){
+},{"./manager":5}],4:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -248,10 +284,165 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 var config = {
-	ScreenHeight: 1120,
+	ScreenHeight: 920,
 	ScreenWidth: 640
 };
 
 exports.default = config;
 
-},{}]},{},[3]);
+},{}],5:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _routes = require("./routes");
+
+var _routes2 = _interopRequireDefault(_routes);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Manager = function () {
+	function Manager(props) {
+		_classCallCheck(this, Manager);
+
+		var self = this;
+
+		var stages = {};
+		for (var route in _routes2.default) {
+			var ops = {};
+			//console.log("mount", route);
+			stages[route] = new _routes2.default[route](ops);
+		}
+
+		this.stages = stages;
+		this.current = undefined;
+		this.show = this.show.bind(this);
+	}
+
+	_createClass(Manager, [{
+		key: "show",
+		value: function show(name) {
+			var current = this.current;
+			if (current) current.clear();
+			var stage = this.stages[name];
+			//console.log("stage", stage, name, this.stages);
+
+			if (stage) {
+				this.current = stage;
+				stage.load();
+			} else {
+				console.error("not found", name);
+			}
+		}
+	}]);
+
+	return Manager;
+}();
+
+var manager = new Manager();
+exports.default = manager;
+
+},{"./routes":7}],6:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _config = require('../config');
+
+var _config2 = _interopRequireDefault(_config);
+
+var _manager = require('../manager');
+
+var _manager2 = _interopRequireDefault(_manager);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Menu = function () {
+	function Menu(props) {
+		_classCallCheck(this, Menu);
+
+		var stage = new createjs.Stage("appcontainer");
+		createjs.Touch.enable(stage);
+		stage.enableMouseOver(10);
+		stage.mouseMoveOutside = true;
+
+		this.stage = stage;
+		this.onClick = this.onClick.bind(this);
+	}
+
+	_createClass(Menu, [{
+		key: 'load',
+		value: function load() {
+			var stage = this.stage;
+			this.drawMap();
+			stage.update();
+
+			stage.addEventListener("click", this.onClick);
+		}
+	}, {
+		key: 'clear',
+		value: function clear() {
+			var stage = this.stage;
+			stage.clear();
+			stage.removeEventListener("click", this.onClick);
+		}
+	}, {
+		key: 'drawMap',
+		value: function drawMap() {
+
+			var stage = this.stage;
+			var rect = new createjs.Shape();
+			rect.graphics.beginFill("#ff0000").drawRect(0, 0, 100, 100);
+			rect.x = 0;
+			rect.y = 0;
+			stage.addChild(rect);
+		}
+	}, {
+		key: 'onClick',
+		value: function onClick(evt) {
+			_manager2.default.show("battle");
+		}
+	}]);
+
+	return Menu;
+}();
+
+exports.default = Menu;
+
+},{"../config":4,"../manager":5}],7:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _battle = require('./battle');
+
+var _battle2 = _interopRequireDefault(_battle);
+
+var _menu = require('./menu');
+
+var _menu2 = _interopRequireDefault(_menu);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var routes = {
+	menu: _menu2.default,
+	battle: _battle2.default
+};
+
+exports.default = routes;
+
+},{"./battle":2,"./menu":6}]},{},[3]);

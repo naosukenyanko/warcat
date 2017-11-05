@@ -1,14 +1,20 @@
 
 import config from '../config';
 import Charactor from './chara';
-console.log("config", config);
+import manager from '../manager';
+//console.log("config", config);
 
 
 export default class BattleStage{
-	constructor(prop){
+	constructor(props){
 		//console.log("constructor");
+		
+		//this.manager = props.manager;
 
 		const stage = new createjs.Stage("appcontainer");
+		createjs.Touch.enable(stage);
+		stage.enableMouseOver(10);
+		stage.mouseMoveOutside = true;
 
 		this.stage = stage;
 		
@@ -20,25 +26,36 @@ export default class BattleStage{
 		this.charactors = chara_list.map(function(chara){
 			return new Charactor(chara);
 		});
-		
+
+		this.onTick = this.onTick.bind(this);
+		this.onClick = this.onClick.bind(this);
 	}
 
 	load(){
 		const stage = this.stage;
-		
-		//console.log("load");
-
+	
 		this.drawMap();
-
-		this.charactors.forEach(function(chara){
-			chara.load({stage:stage});
-		});
-
+		this.loadCharactors();
+		
 		stage.update();
+
+		createjs.Ticker.addEventListener("tick", this.onTick);
+		stage.addEventListener("click", this.onClick);
+	}
+	
+	clear(){
+		const stage = this.stage;	
+		createjs.Ticker.removeEventListener("tick", this.onTick);
+		stage.removeEventListener("click", this.onClick);
+
+		stage.clear();		
 	}
 
 	loadCharactors(){
-		
+		const stage = this.stage;
+		this.charactors.forEach(function(chara){
+			chara.load({stage:stage});
+		});
 	}
 
 	drawMap(){
@@ -72,6 +89,17 @@ export default class BattleStage{
 		
 
 		stage.addChild(rect);
+	}
+
+	
+	onTick(evt){
+		//console.log("tick", this);
+		this.stage.update();
+	}
+
+	onClick(evt){
+		//console.log("onclick", manager);
+		manager.show("menu");
 	}
 
 }
