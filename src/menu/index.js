@@ -23,6 +23,7 @@ export default class Menu{
 
 	clear(){
 		const stage = this.stage;
+		stage.removeAllChildren();
 		stage.clear();
 		stage.removeEventListener("click", this.onClick);
 	}

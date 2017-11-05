@@ -10,7 +10,6 @@ export default class Charactor {
 		[
 			"onClick", 
 			"onPressMove", 
-			"redraw", 
 			"setPos"
 		].forEach( (name) => {
 			this[name] = this[name].bind(this);
@@ -19,24 +18,42 @@ export default class Charactor {
 	}
 
 	load(ops){
+		var self = this;
 		const stage = ops.stage;
+		const map = ops.map;
 		const circle = new createjs.Shape();
 
-		const height = config.ScreenHeight;
-		const width = config.ScreenWidth;
+		const height = config.MapHeight;
+		const width = config.MapWidth;
 		
-		const width_interval = width / 5.0;
-		const height_interval = height / 10.0;
+		const width_interval = width / config.DivideX;
+		const height_interval = height / config.DivideY;
 
-		circle.graphics.beginFill("red")
+		const team = this.team;
+
+		circle.graphics.beginFill(team)
 			.drawCircle(width_interval/2.0, height_interval/2.0, height_interval / 2 - 8);
-		circle.x = this.x * width_interval;
-		circle.y = this.y * height_interval;
+
 		//console.log(this.x, this.y);
 
-		circle.addEventListener("click", this.onClick);
-		circle.addEventListener("pressmove", this.onPressMove);
+		//circle.addEventListener("click", this.onClick);
+		circle.addEventListener("pressmove", ((evt)=>{
+			const pos = map.getLocalPos(evt.stageX - stage.x, 
+										evt.stageY - stage.y);
+			if( map.isEnterable(pos.x, pos.y) ){
+				evt.preventDefault();
+				this.setPos(pos.x, pos.y);
+			}
+		}).bind(this) );
 
+		const draw = () => {			
+			const pos = map.getPos(this.x, this.y);
+			circle.x = pos.x;
+			circle.y = pos.y;
+		};
+
+		draw();
+		this.redraw = draw.bind(this);
 
 		this.circle = circle;
 
@@ -64,6 +81,7 @@ export default class Charactor {
 		//console.log("xy", x, y);
 	}
 
+	/*
 	redraw(){
 		const circle = this.circle;
 		const height = config.ScreenHeight;
@@ -75,6 +93,7 @@ export default class Charactor {
 		circle.x = this.x * width_interval;
 		circle.y = this.y * height_interval;
 	}
+	*/
 	
 	move(x, y){
 		this.x += x;

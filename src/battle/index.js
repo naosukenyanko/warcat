@@ -2,7 +2,54 @@
 import config from '../config';
 import Charactor from './chara';
 import manager from '../manager';
+import Map from './map';
+import Buttons from './buttons';
 //console.log("config", config);
+
+
+
+function chara_set(){
+	const copy = (obj) =>{
+		return JSON.parse( JSON.stringify(obj) );
+	};
+	const default_status = {
+		"hp_max": 800,
+		"stamina_max": 800,
+		"hp": 800,
+		"stamina": 800,
+		"atk": 24,
+		"def": 8,
+		"frc": 24,
+		"int": 8,
+	};
+	const default_chara = {
+		"x": 0, "y": 5, 
+		"status": default_status,
+		"class": "",
+		"team": "red",
+		"skill": 1,
+	};
+
+	
+	var list = [];
+	for(let i=0; i<5; i++){
+		let chara = copy(default_chara);
+		chara.x = i;
+		chara.y = 1;
+		chara.team = "red";
+		list.push( chara );
+	}
+	for(let i=0; i<5; i++){
+		let chara = copy(default_chara);
+		chara.x = i;
+		chara.y = 6;
+		chara.team = "blue";
+		list.push( chara );
+	}
+	
+	
+	return list;
+}
 
 
 export default class BattleStage{
@@ -17,15 +64,24 @@ export default class BattleStage{
 		stage.mouseMoveOutside = true;
 
 		this.stage = stage;
+
+		this.containers = {
+			info: new createjs.Container(),
+			map: new createjs.Container(),
+			buttons: new createjs.Container(),
+		};
+
+		for(var c in this.containers){
+			stage.addChild(this.containers[c]);
+		}
+				
 		
-		var chara_list = [
-			{"x": 1, "y": 2, "status": {}, "class": ""},
-			{"x": 3, "y": 4, "status": {}, "class": ""},
-		];
-		
-		this.charactors = chara_list.map(function(chara){
+		this.charactors = chara_set().map(function(chara){
 			return new Charactor(chara);
 		});
+
+		this.map = new Map();
+		this.buttons = new Buttons();
 
 		this.onTick = this.onTick.bind(this);
 		this.onClick = this.onClick.bind(this);
@@ -33,65 +89,48 @@ export default class BattleStage{
 
 	load(){
 		const stage = this.stage;
-	
-		this.drawMap();
-		this.loadCharactors();
+		const containers = this.containers;
+
+		containers.map.x = 0;
+		containers.map.y = 160;
+		
+		containers.buttons.x = 0;
+		containers.buttons.y = config.ScreenHeight - 100;
+		
+
+		//this.map.draw(stage);
+		this.map.draw(containers.map);
+		this.buttons.draw(containers.buttons);
+		this.loadCharactors(this.map);
 		
 		stage.update();
 
 		createjs.Ticker.addEventListener("tick", this.onTick);
-		stage.addEventListener("click", this.onClick);
+		//stage.addEventListener("click", this.onClick);
 	}
 	
 	clear(){
-		const stage = this.stage;	
+		const stage = this.stage;
+		//console.log("clear", stage.children);
+		stage.removeAllChildren();
 		createjs.Ticker.removeEventListener("tick", this.onTick);
-		stage.removeEventListener("click", this.onClick);
+		//stage.removeEventListener("click", this.onClick);
 
 		stage.clear();		
 	}
 
 	loadCharactors(){
-		const stage = this.stage;
+		//const stage = this.stage;
+		const container = this.containers.map;
+		const map = this.map;
 		this.charactors.forEach(function(chara){
-			chara.load({stage:stage});
+			chara.load({
+				stage: container,
+				map: map,
+			});
 		});
 	}
 
-	drawMap(){
-
-		const stage = this.stage;
-
-		let g = new createjs.Graphics();
-		g.setStrokeStyle(1);
-		g.beginStroke("#c0c0c0");
-		//g.beginFill("#ffffff").drawRect(0, 0, ScreenWidth, ScreenHeight);
-
-		//const height = 150;
-		//const width  = 300;
-		const height = config.ScreenHeight;
-		const width = config.ScreenWidth;
-		
-		const width_interval = width / 5.0;
-		for(let i=0; i< 5 + 1; i++){
-			g.moveTo(i * width_interval,      0);
-			g.lineTo(i * width_interval, height);
-		}
-		const height_interval = height / 10.0;
-		for(let i=0; i<10 + 1 ; i++){
-			g.moveTo(    0, i * height_interval);
-			g.lineTo(width, i * height_interval);
-			
-		}
-		g.endStroke();
-		
-		const rect = new createjs.Shape(g);
-		
-
-		stage.addChild(rect);
-	}
-
-	
 	onTick(evt){
 		//console.log("tick", this);
 		this.stage.update();
