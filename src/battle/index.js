@@ -35,14 +35,14 @@ function chara_set(){
 	for(let i=0; i<5; i++){
 		let chara = copy(default_chara);
 		chara.x = i;
-		chara.y = 1;
+		chara.y = 100;
 		chara.team = "red";
 		list.push( chara );
 	}
 	for(let i=0; i<5; i++){
 		let chara = copy(default_chara);
 		chara.x = i;
-		chara.y = 6;
+		chara.y = 600;
 		chara.team = "blue";
 		list.push( chara );
 	}
@@ -101,6 +101,7 @@ export default class BattleStage{
 		//this.map.draw(stage);
 		this.map.draw(containers.map);
 		this.buttons.draw(containers.buttons);
+		
 		this.loadCharactors(this.map);
 		
 		stage.update();
@@ -123,7 +124,7 @@ export default class BattleStage{
 		//const stage = this.stage;
 		const container = this.containers.map;
 		const map = this.map;
-		this.charactors.forEach(function(chara){
+		this.charactors.forEach( (chara)=>{
 			chara.load({
 				stage: container,
 				map: map,
@@ -133,6 +134,12 @@ export default class BattleStage{
 
 	onTick(evt){
 		//console.log("tick", this);
+		const map = this.map;
+		const stage = this.stage;
+
+		this.charactors.forEach((chara)=>{
+			chara.tick(self);
+		});
 		this.stage.update();
 	}
 

@@ -9,7 +9,7 @@ export default class Charactor {
 
 		[
 			"onClick", 
-			"onPressMove", 
+			//"onPressMove", 
 			"setPos"
 		].forEach( (name) => {
 			this[name] = this[name].bind(this);
@@ -34,9 +34,12 @@ export default class Charactor {
 		circle.graphics.beginFill(team)
 			.drawCircle(width_interval/2.0, height_interval/2.0, height_interval / 2 - 8);
 
+		this.height = height_interval;
+
 		//console.log(this.x, this.y);
 
 		//circle.addEventListener("click", this.onClick);
+		/*
 		circle.addEventListener("pressmove", ((evt)=>{
 			const pos = map.getLocalPos(evt.stageX - stage.x, 
 										evt.stageY - stage.y);
@@ -45,8 +48,9 @@ export default class Charactor {
 				this.setPos(pos.x, pos.y);
 			}
 		}).bind(this) );
+		*/
 
-		const draw = () => {			
+		const draw = () => {
 			const pos = map.getPos(this.x, this.y);
 			circle.x = pos.x;
 			circle.y = pos.y;
@@ -64,36 +68,20 @@ export default class Charactor {
 		console.log("click");
 		//this.move(+1, 0);
 	}
-	
-	onPressMove(evt){
-		//console.log("StageXY", evt.stageX, evt.stageY);
-		const height = config.ScreenHeight;
-		const width = config.ScreenWidth;
-		
-		const width_interval = width / 5.0;
-		const height_interval = height / 10.0;
-		
-		const x = Math.floor(evt.stageX / width_interval);
-		const y = Math.floor(evt.stageY / height_interval);
 
-		evt.preventDefault();
-		this.setPos(x, y);
-		//console.log("xy", x, y);
+	tick(){
+		if(this.team === "red"){
+			this.y += 2;
+		}else{
+			this.y += -2;
+		}
+		const max = config.MapHeight - this.height;
+
+		if(this.y < 0) this.y = 0;
+		if(this.y >= max) this.y = max;
+		this.redraw();
 	}
 
-	/*
-	redraw(){
-		const circle = this.circle;
-		const height = config.ScreenHeight;
-		const width = config.ScreenWidth;
-		
-		const width_interval = width / 5.0;
-		const height_interval = height / 10.0;
-		
-		circle.x = this.x * width_interval;
-		circle.y = this.y * height_interval;
-	}
-	*/
 	
 	move(x, y){
 		this.x += x;

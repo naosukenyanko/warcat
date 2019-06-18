@@ -73,7 +73,9 @@ var Charactor = function () {
 			this[k] = props[k];
 		}
 
-		["onClick", "onPressMove", "setPos"].forEach(function (name) {
+		["onClick",
+		//"onPressMove", 
+		"setPos"].forEach(function (name) {
 			_this[name] = _this[name].bind(_this);
 		});
 	}
@@ -98,16 +100,21 @@ var Charactor = function () {
 
 			circle.graphics.beginFill(team).drawCircle(width_interval / 2.0, height_interval / 2.0, height_interval / 2 - 8);
 
+			this.height = height_interval;
+
 			//console.log(this.x, this.y);
 
 			//circle.addEventListener("click", this.onClick);
-			circle.addEventListener("pressmove", function (evt) {
-				var pos = map.getLocalPos(evt.stageX - stage.x, evt.stageY - stage.y);
-				if (map.isEnterable(pos.x, pos.y)) {
-					evt.preventDefault();
-					_this2.setPos(pos.x, pos.y);
-				}
-			}.bind(this));
+			/*
+   circle.addEventListener("pressmove", ((evt)=>{
+   	const pos = map.getLocalPos(evt.stageX - stage.x, 
+   								evt.stageY - stage.y);
+   	if( map.isEnterable(pos.x, pos.y) ){
+   		evt.preventDefault();
+   		this.setPos(pos.x, pos.y);
+   	}
+   }).bind(this) );
+   */
 
 			var draw = function draw() {
 				var pos = map.getPos(_this2.x, _this2.y);
@@ -129,37 +136,19 @@ var Charactor = function () {
 			//this.move(+1, 0);
 		}
 	}, {
-		key: "onPressMove",
-		value: function onPressMove(evt) {
-			//console.log("StageXY", evt.stageX, evt.stageY);
-			var height = _config2.default.ScreenHeight;
-			var width = _config2.default.ScreenWidth;
+		key: "tick",
+		value: function tick() {
+			if (this.team === "red") {
+				this.y += 2;
+			} else {
+				this.y += -2;
+			}
+			var max = _config2.default.MapHeight - this.height;
 
-			var width_interval = width / 5.0;
-			var height_interval = height / 10.0;
-
-			var x = Math.floor(evt.stageX / width_interval);
-			var y = Math.floor(evt.stageY / height_interval);
-
-			evt.preventDefault();
-			this.setPos(x, y);
-			//console.log("xy", x, y);
+			if (this.y < 0) this.y = 0;
+			if (this.y >= max) this.y = max;
+			this.redraw();
 		}
-
-		/*
-  redraw(){
-  	const circle = this.circle;
-  	const height = config.ScreenHeight;
-  	const width = config.ScreenWidth;
-  	
-  	const width_interval = width / 5.0;
-  	const height_interval = height / 10.0;
-  	
-  	circle.x = this.x * width_interval;
-  	circle.y = this.y * height_interval;
-  }
-  */
-
 	}, {
 		key: "move",
 		value: function move(x, y) {
@@ -250,14 +239,14 @@ function chara_set() {
 	for (var i = 0; i < 5; i++) {
 		var chara = copy(default_chara);
 		chara.x = i;
-		chara.y = 1;
+		chara.y = 100;
 		chara.team = "red";
 		list.push(chara);
 	}
 	for (var _i = 0; _i < 5; _i++) {
 		var _chara = copy(default_chara);
 		_chara.x = _i;
-		_chara.y = 6;
+		_chara.y = 600;
 		_chara.team = "blue";
 		list.push(_chara);
 	}
@@ -316,6 +305,7 @@ var BattleStage = function () {
 			//this.map.draw(stage);
 			this.map.draw(containers.map);
 			this.buttons.draw(containers.buttons);
+
 			this.loadCharactors(this.map);
 
 			stage.update();
@@ -351,6 +341,12 @@ var BattleStage = function () {
 		key: 'onTick',
 		value: function onTick(evt) {
 			//console.log("tick", this);
+			var map = this.map;
+			var stage = this.stage;
+
+			this.charactors.forEach(function (chara) {
+				chara.tick(self);
+			});
 			this.stage.update();
 		}
 	}, {
@@ -411,11 +407,14 @@ var Map = function () {
 				g.moveTo(i * width_interval, 0);
 				g.lineTo(i * width_interval, height);
 			}
-			var height_interval = height * 1.0 / _config2.default.DivideY;
-			for (var _i = 0; _i < _config2.default.DivideY + 1; _i++) {
-				g.moveTo(0, _i * height_interval);
-				g.lineTo(width, _i * height_interval);
-			}
+			/*
+   const height_interval = height * 1.0 / config.DivideY;
+   for(let i=0; i< config.DivideY + 1 ; i++){
+   	g.moveTo(    0, i * height_interval);
+   	g.lineTo(width, i * height_interval);
+   	
+   }
+   */
 			g.endStroke();
 
 			var rect = new createjs.Shape(g);
@@ -433,7 +432,8 @@ var Map = function () {
 
 			return {
 				x: Math.floor(x / width_interval),
-				y: Math.floor(y / height_interval)
+				//y: Math.floor(y / height_interval),
+				y: y
 			};
 		}
 	}, {
@@ -456,7 +456,8 @@ var Map = function () {
 
 			return {
 				x: x * width_interval,
-				y: y * height_interval
+				//y: y * height_interval,
+				y: y
 			};
 		}
 	}]);

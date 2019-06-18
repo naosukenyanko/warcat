@@ -10,10 +10,11 @@ export default class Map{
 
 	}
 	
-	draw(stage){
+	draw(g){
 		
 		console.log("draw map", config);
-		let g = new createjs.Graphics();
+		//let g = new createjs.Graphics();
+		g.clear();
 		g.setStrokeStyle(1);
 		g.beginStroke("#c0c0c0");
 		//g.beginFill("#ffffff").drawRect(0, 0, ScreenWidth, ScreenHeight);
@@ -28,18 +29,18 @@ export default class Map{
 			g.moveTo(i * width_interval,      0);
 			g.lineTo(i * width_interval, height);
 		}
+		/*
 		const height_interval = height * 1.0 / config.DivideY;
 		for(let i=0; i< config.DivideY + 1 ; i++){
 			g.moveTo(    0, i * height_interval);
 			g.lineTo(width, i * height_interval);
 			
 		}
+		*/
 		g.endStroke();
 		
-		const rect = new createjs.Shape(g);
-		
-
-		stage.addChild(rect);
+		//const rect = new createjs.Shape(g);
+		//stage.addChild(rect);
 	}
 
 	getLocalPos(x, y){
@@ -51,7 +52,8 @@ export default class Map{
 		
 		return {
 			x: Math.floor(x / width_interval),
-			y: Math.floor(y / height_interval),
+			//y: Math.floor(y / height_interval),
+			y: y,
 		};
 
 	}
@@ -73,7 +75,8 @@ export default class Map{
 
 		return {
 			x: x *  width_interval,
-			y: y * height_interval,
+			//y: y * height_interval,
+			y: y,
 		}
 	}
 	
